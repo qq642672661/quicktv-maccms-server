@@ -1,135 +1,193 @@
-import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../middleware/auth';
-import { liveStreamService } from '../services/live.service';
+import { Request, Response, NextFunction } from 'express'
+import liveService from '../services/live.service'
+import logger from '../utils/logger'
 
-export class LiveStreamController {
-  async createLiveStream(req: AuthRequest, res: Response, next: NextFunction) {
+class LiveController {
+  async getChannelList(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const stream = await liveStreamService.createLiveStream(req.body);
-      res.status(201).json({ success: true, message: '直播创建成功', data: stream });
+      const { category, page = '1', limit = '20' } = req.query
+      
+      const result = await liveService.getChannelList(
+        category as string,
+        parseInt(page as string),
+        parseInt(limit as string)
+      )
+
+      res.json({
+        code: 200,
+        message: 'success',
+        data: result
+      })
     } catch (error) {
-      next(error);
+      logger.error('Get channel list error:', error)
+      next(error)
     }
   }
 
-  async getLiveStreamById(req: AuthRequest, res: Response, next: NextFunction) {
+  async getChannelDetail(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const stream = await liveStreamService.getLiveStreamById(req.params.id);
-      res.json({ success: true, data: stream });
+      const { channelId } = req.params
+      
+      const channel = await liveService.getChannelDetail(channelId)
+      
+      if (!channel) {
+        res.status(404).json({
+          code: 404,
+          message: 'Channel not found'
+        })
+        return
+      }
+
+      res.json({
+        code: 200,
+        message: 'success',
+        data: channel
+      })
     } catch (error) {
-      next(error);
+      logger.error('Get channel detail error:', error)
+      next(error)
     }
   }
 
-  async getLiveStreamList(req: AuthRequest, res: Response, next: NextFunction) {
+  async createChannel(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const query = {
-        page: parseInt(req.query.page as string) || 1,
-        pageSize: parseInt(req.query.pageSize as string) || 20,
-        category_id: req.query.category_id as string,
-        status: req.query.status as string,
-        is_featured: req.query.is_featured === 'true' ? true : undefined,
-        search: req.query.search as string,
-      };
-      const result = await liveStreamService.getLiveStreamList(query);
-      res.json({ success: true, data: result });
+      const channel = await liveService.createChannel(req.body)
+      
+      res.status(201).json({
+        code: 201,
+        message: 'Channel created successfully',
+        data: channel
+      })
     } catch (error) {
-      next(error);
+      logger.error('Create channel error:', error)
+      next(error)
     }
   }
 
-  async updateLiveStream(req: AuthRequest, res: Response, next: NextFunction) {
+  async updateChannel(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const stream = await liveStreamService.updateLiveStream(req.params.id, req.body);
-      res.json({ success: true, message: '直播更新成功', data: stream });
+      const { channelId } = req.params
+      
+      const channel = await liveService.updateChannel(channelId, req.body)
+      
+      if (!channel) {
+        res.status(404).json({
+          code: 404,
+          message: 'Channel not found'
+        })
+        return
+      }
+
+      res.json({
+        code: 200,
+        message: 'Channel updated successfully',
+        data: channel
+      })
     } catch (error) {
-      next(error);
+      logger.error('Update channel error:', error)
+      next(error)
     }
   }
 
-  async deleteLiveStream(req: AuthRequest, res: Response, next: NextFunction) {
+  async updateChannelStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await liveStreamService.deleteLiveStream(req.params.id);
-      res.json({ success: true, message: '直播删除成功' });
+      const { channelId } = req.params
+      const { status } = req.body
+      
+      const success = await liveService.updateChannelStatus(channelId, status)
+      
+      if (!success) {
+        res.status(404).json({
+          code: 404,
+          message: 'Channel not found'
+        })
+        return
+      }
+
+      res.json({
+        code: 200,
+        message: 'Channel status updated successfully'
+      })
     } catch (error) {
-      next(error);
+      logger.error('Update channel status error:', error)
+      next(error)
     }
   }
 
-  async startLiveStream(req: AuthRequest, res: Response, next: NextFunction) {
+  async getStreamInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await liveStreamService.startLiveStream(req.params.id);
-      res.json({ success: true, message: '直播已开始' });
+      const { channelId } = req.params
+      const { quality } = req.query
+      
+      const streamInfo = await liveService.getStreamInfo(channelId, quality as string)
+      
+      if (!streamInfo) {
+        res.status(404).json({
+          code: 404,
+          message: 'Channel not found'
+        })
+        return
+      }
+
+      res.json({
+        code: 200,
+        message: 'success',
+        data: streamInfo
+      })
     } catch (error) {
-      next(error);
+      logger.error('Get stream info error:', error)
+      next(error)
     }
   }
 
-  async endLiveStream(req: AuthRequest, res: Response, next: NextFunction) {
+  async getViewStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await liveStreamService.endLiveStream(req.params.id);
-      res.json({ success: true, message: '直播已结束' });
+      const { channelId } = req.params
+      
+      const stats = await liveService.getViewStats(channelId)
+      
+      res.json({
+        code: 200,
+        message: 'success',
+        data: stats
+      })
     } catch (error) {
-      next(error);
+      logger.error('Get view stats error:', error)
+      next(error)
     }
   }
 
-  async joinLiveStream(req: AuthRequest, res: Response, next: NextFunction) {
+  async recordView(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await liveStreamService.incrementViewerCount(req.params.id);
-      res.json({ success: true, message: '加入直播成功' });
+      const { channelId } = req.params
+      const { deviceId } = req.body
+      
+      await liveService.recordView(channelId, deviceId)
+      
+      res.json({
+        code: 200,
+        message: 'View recorded successfully'
+      })
     } catch (error) {
-      next(error);
+      logger.error('Record view error:', error)
+      next(error)
     }
   }
 
-  async leaveLiveStream(req: AuthRequest, res: Response, next: NextFunction) {
+  async getCategoryList(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await liveStreamService.decrementViewerCount(req.params.id);
-      res.json({ success: true, message: '离开直播成功' });
+      const categories = await liveService.getCategoryList()
+      
+      res.json({
+        code: 200,
+        message: 'success',
+        data: categories
+      })
     } catch (error) {
-      next(error);
-    }
-  }
-
-  async likeLiveStream(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      await liveStreamService.incrementLikeCount(req.params.id);
-      res.json({ success: true, message: '点赞成功' });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getLiveStreams(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const limit = parseInt(req.query.limit as string) || 20;
-      const streams = await liveStreamService.getLiveStreams(limit);
-      res.json({ success: true, data: streams });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getFeaturedLiveStreams(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const limit = parseInt(req.query.limit as string) || 10;
-      const streams = await liveStreamService.getFeaturedLiveStreams(limit);
-      res.json({ success: true, data: streams });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async getPopularLiveStreams(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const limit = parseInt(req.query.limit as string) || 10;
-      const streams = await liveStreamService.getPopularLiveStreams(limit);
-      res.json({ success: true, data: streams });
-    } catch (error) {
-      next(error);
+      logger.error('Get category list error:', error)
+      next(error)
     }
   }
 }
 
-export const liveStreamController = new LiveStreamController();
+export default new LiveController()

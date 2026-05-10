@@ -1,7 +1,6 @@
-import { createClient, RedisClientType } from 'redis';
-import { config } from '../config';
-import { logger } from '../utils/logger';
-
+import { createClient, RedisClientTypeimport { createClient } from 'redis';
+import config from '../config';
+import logger from '../utils/logger';
 class RedisClient {
   private client: RedisClientType;
   private isConnected: boolean = false;

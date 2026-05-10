@@ -1,84 +1,67 @@
-import express, { Application } from 'express';
-import helmet from 'helmet';
-import cors from 'cors';
-import compression from 'compression';
-import morgan from 'morgan';
-import { config } from './config';
-import { logger } from './utils/logger';
-import { errorHandler } from './middleware/error-handler';
-import { notFoundHandler } from './middleware/not-found-handler';
-import { metricsMiddleware } from './middleware/metrics';
-import routes from './routes';
+import app from './app'
+import config from './config'
+import database from './database'
+import redisCache from './cache/redis'
+import logger from './utils/logger'
+import { createServer } from 'http'
 
-const app: Application = express();
+const server = createServer(app)
 
-app.use(helmet());
+async function startServer(): Promise<void> {
+  try {
+    await database.connect()
+    logger.info('Database connected')
 
-app.use(cors({
-  origin: config.cors.origin,
-  credentials: true
-}));
+    await redisCache.connect()
+    logger.info('Redis connected')
 
-app.use(compression());
-
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-app.use(morgan('combined', {
-  stream: {
-    write: (message: string) => logger.info(message.trim())
+    server.listen(config.port, () => {
+      logger.info(`Server is running on port ${config.port}`)
+      logger.info(`Environment: ${config.env}`)
+      logger.info(`API URL: http://localhost:${config.port}/api`)
+    })
+  } catch (error) {
+    logger.error('Failed to start server:', error)
+    process.exit(1)
   }
-}));
+}
 
-app.use(metricsMiddleware);
+async function gracefulShutdown(signal: string): Promise<void> {
+  logger.info(`${signal} received, shutting down gracefully...`)
+  
+  server.close(async () => {
+    logger.info('HTTP server closed')
+    
+    try {
+      await redisCache.disconnect()
+      logger.info('Redis disconnected')
+      
+      await database.disconnect()
+      logger.info('Database disconnected')
+      
+      process.exit(0)
+    } catch (error) {
+      logger.error('Error during shutdown:', error)
+      process.exit(1)
+    }
+  })
 
-app.get('/health', (_req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: config.env
-  });
-});
+  setTimeout(() => {
+    logger.error('Forced shutdown after timeout')
+    process.exit(1)
+  }, 10000)
+}
 
-app.use('/api', routes);
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+process.on('SIGINT', () => gracefulShutdown('SIGINT'))
 
-app.use(notFoundHandler);
-app.use(errorHandler);
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason)
+})
 
-const PORT = config.port;
-const HOST = config.host;
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error)
+  gracefulShutdown('UNCAUGHT_EXCEPTION')
+})
 
-const server = app.listen(PORT, HOST, () => {
-  logger.info(`Server is running on ${HOST}:${PORT}`);
-  logger.info(`Environment: ${config.env}`);
-  logger.info(`Database: ${config.database.host}:${config.database.port}`);
-  logger.info(`Redis: ${config.redis.host}:${config.redis.port}`);
-});
-
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
-  });
-});
-
-process.on('SIGINT', () => {
-  logger.info('SIGINT signal received: closing HTTP server');
-  server.close(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
-  });
-});
-
-process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-process.on('uncaughtException', (error: Error) => {
-  logger.error('Uncaught Exception:', error);
-  process.exit(1);
-});
-
-export default app;
+startServer()

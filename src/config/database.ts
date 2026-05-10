@@ -1,7 +1,6 @@
-import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
-import { config } from '../config';
-import { logger } from '../utils/logger';
-
+import { Pool, PoolClient, QueryResult, QueryResultRowimport { Pool } from 'pg';
+import config from '../config';
+import logger from '../utils/logger';
 class Database {
   private pool: Pool;
 
