@@ -1,5 +1,5 @@
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import * as jwt from 'jsonwebtoken';
 import { db } from '../config/database';
 import { config } from '../config';
 import { AppError } from '../middleware/error-handler';
@@ -32,12 +32,12 @@ export class UserService {
   async register(data: RegisterData): Promise<{ user: User; token: string }> {
     return await db.transaction(async (client) => {
       const existingUser = await client.query(
-        'SELECT id FROM users WHERE username = $1 OR email = $2',
-        [data.username, data.email]
+        "SELECT id FROM users WHERE username = $1 OR email = $2",
+        [data.username, data.email],
       );
 
       if (existingUser.rows.length > 0) {
-        throw new AppError('用户名或邮箱已存在', 400);
+        throw new AppError("用户名或邮箱已存在", 400);
       }
 
       const hashedPassword = await bcrypt.hash(data.password, 12);
@@ -46,7 +46,7 @@ export class UserService {
         `INSERT INTO users (username, email, password_hash, phone, role, status)
          VALUES ($1, $2, $3, $4, 'user', 'active')
          RETURNING id as user_id, username, email, role, status, avatar_url as avatar, created_at, updated_at`,
-        [data.username, data.email, hashedPassword, data.phone || null]
+        [data.username, data.email, hashedPassword, data.phone || null],
       );
 
       const user = result.rows[0];
@@ -54,7 +54,7 @@ export class UserService {
       await client.query(
         `INSERT INTO user_statistics (user_id)
          VALUES ($1)`,
-        [user.user_id]
+        [user.user_id],
       );
 
       const token = this.generateToken(user);
@@ -70,33 +70,33 @@ export class UserService {
       `SELECT id as user_id, username, email, password_hash, role, status, avatar_url as avatar, created_at, updated_at
        FROM users
        WHERE username = $1`,
-      [data.username]
+      [data.username],
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('用户名或密码错误', 401);
+      throw new AppError("用户名或密码错误", 401);
     }
 
     const user = result.rows[0];
 
-    if (user.status !== 'active') {
-      throw new AppError('账号已被禁用', 403);
+    if (user.status !== "active") {
+      throw new AppError("账号已被禁用", 403);
     }
 
     const isPasswordValid = await bcrypt.compare(
       data.password,
-      user.password_hash
+      user.password_hash,
     );
 
     if (!isPasswordValid) {
-      throw new AppError('用户名或密码错误', 401);
+      throw new AppError("用户名或密码错误", 401);
     }
 
     await db.query(
       `UPDATE users
        SET last_login_at = CURRENT_TIMESTAMP, last_login_ip = $1
        WHERE id = $2`,
-      ['0.0.0.0', user.user_id]
+      ["0.0.0.0", user.user_id],
     );
 
     delete user.password_hash;
@@ -113,11 +113,11 @@ export class UserService {
       `SELECT id as user_id, username, email, role, status, avatar_url as avatar, phone, created_at, updated_at
        FROM users
        WHERE id = $1`,
-      [userId]
+      [userId],
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('用户不存在', 404);
+      throw new AppError("用户不存在", 404);
     }
 
     return result.rows[0];
@@ -125,7 +125,7 @@ export class UserService {
 
   async updateUser(
     userId: string,
-    data: Partial<{ email: string; phone: string; avatar: string }>
+    data: Partial<{ email: string; phone: string; avatar: string }>,
   ): Promise<User> {
     const fields: string[] = [];
     const values: any[] = [];
@@ -147,21 +147,21 @@ export class UserService {
     }
 
     if (fields.length === 0) {
-      throw new AppError('没有需要更新的字段', 400);
+      throw new AppError("没有需要更新的字段", 400);
     }
 
     values.push(userId);
 
     const result = await db.query(
       `UPDATE users
-       SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+       SET ${fields.join(", ")}, updated_at = CURRENT_TIMESTAMP
        WHERE id = $${paramIndex}
        RETURNING id as user_id, username, email, role, status, avatar_url as avatar, phone, created_at, updated_at`,
-      values
+      values,
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('用户不存在', 404);
+      throw new AppError("用户不存在", 404);
     }
 
     logger.info(`用户信息更新成功: ${userId}`);
@@ -172,31 +172,31 @@ export class UserService {
   async changePassword(
     userId: string,
     oldPassword: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<void> {
     const result = await db.query(
-      'SELECT password_hash FROM users WHERE id = $1',
-      [userId]
+      "SELECT password_hash FROM users WHERE id = $1",
+      [userId],
     );
 
     if (result.rows.length === 0) {
-      throw new AppError('用户不存在', 404);
+      throw new AppError("用户不存在", 404);
     }
 
     const isPasswordValid = await bcrypt.compare(
       oldPassword,
-      result.rows[0].password_hash
+      result.rows[0].password_hash,
     );
 
     if (!isPasswordValid) {
-      throw new AppError('原密码错误', 400);
+      throw new AppError("原密码错误", 400);
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
     await db.query(
-      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
-      [hashedPassword, userId]
+      "UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+      [hashedPassword, userId],
     );
 
     logger.info(`用户密码修改成功: ${userId}`);
@@ -205,7 +205,7 @@ export class UserService {
   async getUserList(
     page: number = 1,
     pageSize: number = 20,
-    filters?: { role?: string; status?: string; keyword?: string }
+    filters?: { role?: string; status?: string; keyword?: string },
   ): Promise<{ users: User[]; total: number; page: number; pageSize: number }> {
     const offset = (page - 1) * pageSize;
     const conditions: string[] = [];
@@ -223,16 +223,19 @@ export class UserService {
     }
 
     if (filters?.keyword) {
-      conditions.push(`(username ILIKE $${paramIndex} OR email ILIKE $${paramIndex})`);
+      conditions.push(
+        `(username ILIKE $${paramIndex} OR email ILIKE $${paramIndex})`,
+      );
       values.push(`%${filters.keyword}%`);
       paramIndex++;
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const countResult = await db.query(
       `SELECT COUNT(*) as total FROM users ${whereClause}`,
-      values
+      values,
     );
 
     const total = parseInt(countResult.rows[0].total);
@@ -245,7 +248,7 @@ export class UserService {
        ${whereClause}
        ORDER BY created_at DESC
        LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
-      values
+      values,
     );
 
     return {
@@ -257,17 +260,14 @@ export class UserService {
   }
 
   private generateToken(user: User): string {
-    return jwt.sign(
-      {
-        userId: user.user_id,
-        username: user.username,
-        role: user.role,
-      },
-      config.jwt.secret,
-      {
-        expiresIn: config.jwt.expiresIn,
-      }
-    );
+    const payload = {
+      userId: user.user_id,
+      username: user.username,
+      role: user.role,
+    };
+    return jwt.sign(payload, config.jwt.secret, {
+      expiresIn: config.jwt.expiresIn,
+    } as jwt.SignOptions);
   }
 }
 

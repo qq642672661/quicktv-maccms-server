@@ -13,7 +13,7 @@ export interface AuthRequest extends Request {
 
 export const authMiddleware = async (
   req: AuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
   try {
@@ -43,7 +43,7 @@ export const authMiddleware = async (
 };
 
 export const requireRole = (...roles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, _res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(new AppError('未认证', 401));
     }

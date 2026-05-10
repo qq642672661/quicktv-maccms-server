@@ -27,10 +27,11 @@ register.registerMetric(httpRequestDuration);
 register.registerMetric(httpRequestTotal);
 register.registerMetric(activeConnections);
 
-export const metricsMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const metricsMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   if (req.path === '/metrics') {
     res.set('Content-Type', register.contentType);
-    return register.metrics().then(metrics => res.end(metrics));
+    register.metrics().then(metrics => res.end(metrics));
+    return;
   }
 
   const start = Date.now();

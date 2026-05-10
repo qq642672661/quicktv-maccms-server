@@ -1,6 +1,6 @@
 import { db } from '../config/database';
 import { logger } from '../utils/logger';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 async function seed() {
   try {
