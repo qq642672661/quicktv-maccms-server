@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import userRoutes from './user.routes';
+import videoRoutes from './video.routes';
 
 const router = Router();
 
@@ -11,10 +12,12 @@ router.get('/', (req, res) => {
       health: '/health',
       metrics: '/metrics',
       users: '/api/users',
+      videos: '/api/videos',
     },
   });
 });
 
 router.use('/users', userRoutes);
+router.use('/videos', videoRoutes);
 
 export default router;

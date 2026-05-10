@@ -20,6 +20,8 @@ export const validate = (schema: Joi.ObjectSchema) => {
   };
 };
 
+export const validateBody = validate;
+
 export const validateQuery = (schema: Joi.ObjectSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const { error } = schema.validate(req.query, {

@@ -56,4 +56,8 @@ export const requireRole = (...roles: string[]) => {
   };
 };
 
+export const requireAdmin = () => {
+  return requireRole('admin', 'superadmin');
+};
+
 export default authMiddleware;
