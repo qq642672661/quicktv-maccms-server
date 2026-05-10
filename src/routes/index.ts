@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import userRoutes from './user.routes';
 
 const router = Router();
 
@@ -9,9 +10,11 @@ router.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       metrics: '/metrics',
-      api: '/api'
-    }
+      users: '/api/users',
+    },
   });
 });
+
+router.use('/users', userRoutes);
 
 export default router;
