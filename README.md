@@ -2,21 +2,28 @@
 
 企业级 Node.js + Express + TypeScript + PostgreSQL + Redis 后端服务
 
+[![CI/CD](https://github.com/your-username/quicktv-maccms-server/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/your-username/quicktv-maccms-server/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## 功能特性
 
 - ✅ 直播管理 API（频道列表、状态管理、观看统计）
 - ✅ 播放历史 API
 - ✅ 收藏功能 API
 - ✅ 评论系统 API
+- ✅ JWT 认证授权
+- ✅ API 限流保护
 - ✅ Redis 缓存层
 - ✅ PostgreSQL 数据库
 - ✅ TypeScript 类型安全
-- ✅ 日志系统
+- ✅ 日志系统（Winston）
 - ✅ 错误处理
 - ✅ CORS 支持
 - ✅ 安全防护（Helmet）
 - ✅ 压缩响应
 - ✅ 优雅关闭
+- ✅ Docker 容器化
+- ✅ CI/CD 自动化部署
 
 ## 技术栈
 
@@ -193,20 +200,50 @@ npm run format
 
 ## 部署
 
-### Docker 部署
+### 使用 Docker Compose（推荐）
+
+```bash
+# 复制环境变量
+cp .env.example .env
+
+# 编辑 .env 配置
+nano .env
+
+# 启动所有服务
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f api
+
+# 停止服务
+docker-compose down
+```
+
+### 使用 Docker
 
 ```bash
 # 构建镜像
 docker build -t quicktv-maccms-server .
 
 # 运行容器
-docker run -d -p 3000:3000 --env-file .env quicktv-maccms-server
+docker run -d \
+  -p 3000:3000 \
+  --env-file .env \
+  --name quicktv-api \
+  quicktv-maccms-server
 ```
 
-### Docker Compose
+### 手动部署
 
 ```bash
-docker-compose up -d
+# 安装依赖
+npm install
+
+# 构建项目
+npm run build
+
+# 启动生产服务
+npm start
 ```
 
 ## 环境变量

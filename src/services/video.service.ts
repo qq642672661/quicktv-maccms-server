@@ -1,6 +1,6 @@
-import { db } from '../config/database';
+import db from '../config/database';
 import { AppError } from '../middleware/error-handler';
-import { logger } from '../utils/logger';
+import logger from '../utils/logger';
 
 export interface Video {
   video_id: string;

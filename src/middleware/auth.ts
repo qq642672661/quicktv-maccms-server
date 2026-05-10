@@ -7,6 +7,7 @@ export interface AuthRequest extends Request {
   user?: {
     userId: string;
     username: string;
+    email: string;
     role: string;
   };
 }
@@ -29,6 +30,7 @@ export const authMiddleware = async (
       const decoded = jwt.verify(token, config.jwt.secret) as {
         userId: string;
         username: string;
+        email: string;
         role: string;
       };
 

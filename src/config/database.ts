@@ -1,6 +1,7 @@
-import { Pool, PoolClient, QueryResult, QueryResultRowimport { Pool } from 'pg';
+import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import config from '../config';
 import logger from '../utils/logger';
+
 class Database {
   private pool: Pool;
 
@@ -11,30 +12,34 @@ class Database {
       database: config.database.name,
       user: config.database.user,
       password: config.database.password,
-      max: config.database.maxConnections,
-      idleTimeoutMillis: config.database.idleTimeout,
-      connectionTimeoutMillis: 5000,
-      ssl: config.env === 'production' ? { rejectUnauthorized: false } : false
-    });
-
-    this.pool.on('connect', () => {
-      logger.info('Database connection established');
+      min: config.database.pool.min,
+      max: config.database.pool.max,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
     });
 
     this.pool.on('error', (err) => {
-      logger.error('Unexpected database error:', err);
+      logger.error('Unexpected database pool error:', err);
     });
   }
 
-  async query<T extends QueryResultRow = any>(text: string, params?: any[]): Promise<QueryResult<T>> {
-    const start = Date.now();
+  async connect(): Promise<void> {
     try {
-      const result = await this.pool.query<T>(text, params);
-      const duration = Date.now() - start;
-      logger.debug('Executed query', { text, duration, rows: result.rowCount });
-      return result;
+      const client = await this.pool.connect();
+      await client.query('SELECT NOW()');
+      client.release();
+      logger.info('Database connected successfully');
     } catch (error) {
-      logger.error('Database query error:', { text, error });
+      logger.error('Failed to connect to database:', error);
+      throw error;
+    }
+  }
+
+  async query<T extends QueryResultRow = any>(text: string, params?: any[]): Promise<QueryResult<T>> {
+    try {
+      return await this.pool.query<T>(text, params);
+    } catch (error) {
+      logger.error('Database query error:', { text, params, error });
       throw error;
     }
   }
@@ -44,7 +49,7 @@ class Database {
   }
 
   async transaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
-    const client = await this.getClient();
+    const client = await this.pool.connect();
     try {
       await client.query('BEGIN');
       const result = await callback(client);
@@ -58,19 +63,13 @@ class Database {
     }
   }
 
-  async close(): Promise<void> {
+  async disconnect(): Promise<void> {
     await this.pool.end();
-    logger.info('Database connection pool closed');
+    logger.info('Database disconnected');
   }
 
-  async healthCheck(): Promise<boolean> {
-    try {
-      await this.query('SELECT 1');
-      return true;
-    } catch (error) {
-      logger.error('Database health check failed:', error);
-      return false;
-    }
+  getPool(): Pool {
+    return this.pool;
   }
 }
 

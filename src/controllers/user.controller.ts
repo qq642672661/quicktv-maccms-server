@@ -1,7 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { userService } from '../services/user.service';
 import { AuthRequest } from '../middleware/auth';
-import { logger } from '../utils/logger';
 
 export class UserController {
   async register(req: AuthRequest, res: Response, next: NextFunction) {

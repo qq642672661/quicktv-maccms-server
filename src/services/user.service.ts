@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { db } from '../config/database';
-import { config } from '../config';
+import db from '../config/database';
+import config from '../config';
 import { AppError } from '../middleware/error-handler';
-import { logger } from '../utils/logger';
+import logger from '../utils/logger';
 
 export interface User {
   user_id: string;

@@ -3,6 +3,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import compression from 'compression'
 import morgan from 'morgan'
+import rateLimit from 'express-rate-limit'
 import config from './config'
 import routes from './routes'
 import logger from './utils/logger'
@@ -26,6 +27,15 @@ class App {
     this.app.use(compression())
     this.app.use(express.json({ limit: '10mb' }))
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+    
+    const limiter = rateLimit({
+      windowMs: config.rateLimit.windowMs,
+      max: config.rateLimit.maxRequests,
+      message: 'Too many requests from this IP, please try again later.',
+      standardHeaders: true,
+      legacyHeaders: false,
+    })
+    this.app.use('/api/', limiter)
     
     if (config.env === 'development') {
       this.app.use(morgan('dev'))
