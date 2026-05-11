@@ -119,8 +119,8 @@ class VideoService {
     const pageSize = Math.min(query.pageSize || 20, 100);
     const offset = (page - 1) * pageSize;
 
-    let whereConditions: string[] = [];
-    let queryParams: any[] = [];
+    const whereConditions: string[] = [];
+    const queryParams: any[] = [];
     let paramIndex = 1;
 
     if (query.category_id) {

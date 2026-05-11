@@ -147,13 +147,14 @@ const command = process.argv[2];
       case 'down':
         await manager.down();
         break;
-      case 'create':
+      case 'create': {
         const name = process.argv[3];
         if (!name) {
           throw new Error('Migration name is required');
         }
         await manager.create(name);
         break;
+      }
       default:
         logger.error('Invalid command. Use: up, down, or create <name>');
         process.exit(1);
