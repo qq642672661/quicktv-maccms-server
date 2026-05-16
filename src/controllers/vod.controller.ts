@@ -1,8 +1,33 @@
+/**
+ * 点播内容控制器
+ * 处理视频点播相关的HTTP请求，包括内容列表、详情、创建、更新等
+ *
+ * 主要功能：
+ * 1. 内容列表查询（支持分类、分页）
+ * 2. 内容详情获取
+ * 3. 内容创建和更新
+ * 4. 观看记录统计
+ * 5. 分类列表查询
+ * 6. 热门和最新内容推荐
+ */
+
 import { Request, Response, NextFunction } from 'express'
 import vodService from '../services/vod.service'
 import logger from '../utils/logger'
 
+/**
+ * 点播控制器类
+ * 负责处理所有点播相关的API请求
+ */
 class VodController {
+  /**
+   * 获取点播内容列表
+   * 支持按类型、分类筛选，支持分页
+   *
+   * @param req - 请求对象，包含查询参数：type（类型）、category（分类）、page（页码）、limit（每页数量）
+   * @param res - 响应对象
+   * @param next - 下一个中间件函数
+   */
   async getContentList(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { type, category, page = '1', limit = '20' } = req.query
@@ -29,6 +54,14 @@ class VodController {
     }
   }
 
+  /**
+   * 获取点播内容详情
+   * 根据内容ID获取完整的视频信息
+   *
+   * @param req - 请求对象，包含路径参数：contentId（内容ID）
+   * @param res - 响应对象
+   * @param next - 下一个中间件函数
+   */
   async getContentDetail(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { contentId } = req.params
@@ -54,6 +87,14 @@ class VodController {
     }
   }
 
+  /**
+   * 创建点播内容
+   * 添加新的视频内容到数据库
+   *
+   * @param req - 请求对象，包含请求体：视频内容信息
+   * @param res - 响应对象
+   * @param next - 下一个中间件函数
+   */
   async createContent(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const content = await vodService.createContent(req.body)
@@ -69,6 +110,14 @@ class VodController {
     }
   }
 
+  /**
+   * 更新点播内容
+   * 修改已存在的视频内容信息
+   *
+   * @param req - 请求对象，包含路径参数：contentId（内容ID）和请求体：更新的内容信息
+   * @param res - 响应对象
+   * @param next - 下一个中间件函数
+   */
   async updateContent(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { contentId } = req.params
@@ -94,6 +143,14 @@ class VodController {
     }
   }
 
+  /**
+   * 记录观看次数
+   * 统计视频的观看数据，用于热门推荐等功能
+   *
+   * @param req - 请求对象，包含路径参数：contentId（内容ID）和请求体：deviceId（设备ID）
+   * @param res - 响应对象
+   * @param next - 下一个中间件函数
+   */
   async recordView(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { contentId } = req.params
@@ -123,6 +180,14 @@ class VodController {
     }
   }
 
+  /**
+   * 获取分类列表
+   * 获取所有可用的视频分类，支持按类型筛选
+   *
+   * @param req - 请求对象，包含查询参数：type（类型：movie或tv）
+   * @param res - 响应对象
+   * @param next - 下一个中间件函数
+   */
   async getCategoryList(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { type } = req.query
@@ -140,6 +205,14 @@ class VodController {
     }
   }
 
+  /**
+   * 获取热门内容
+   * 根据观看次数返回最受欢迎的视频内容
+   *
+   * @param req - 请求对象，包含查询参数：type（类型）、limit（数量限制，默认10）
+   * @param res - 响应对象
+   * @param next - 下一个中间件函数
+   */
   async getPopularContent(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { type, limit = '10' } = req.query
@@ -160,6 +233,14 @@ class VodController {
     }
   }
 
+  /**
+   * 获取最新内容
+   * 根据创建时间返回最新上传的视频内容
+   *
+   * @param req - 请求对象，包含查询参数：type（类型）、limit（数量限制，默认10）
+   * @param res - 响应对象
+   * @param next - 下一个中间件函数
+   */
   async getLatestContent(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { type, limit = '10' } = req.query
@@ -181,4 +262,5 @@ class VodController {
   }
 }
 
+// 导出控制器单例
 export default new VodController()
