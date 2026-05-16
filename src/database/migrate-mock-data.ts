@@ -540,7 +540,7 @@ class DataMigration {
 
       const categoryMap = await this.migrateCategories(mockData.vodContent);
 
-      await migrateLiveChannels(mockData.liveChannels);
+      await this.migrateLiveChannels(mockData.liveChannels);
 
       await this.migrateVodContent(mockData.vodContent, categoryMap);
 

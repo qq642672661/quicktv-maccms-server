@@ -1,10 +1,10 @@
-import express from 'express';
+import express, { type Router as RouterType } from 'express';
 import liveRoutes from './live.routes.sqlite';
 import vodRoutes from './vod.routes.sqlite';
 import hellotvRoutes from './hellotv.routes';
 import adminRoutes from './admin.routes';
 
-const router = express.Router();
+const router: RouterType = express.Router();
 
 router.get('/health', (_req, res) => {
   res.json({

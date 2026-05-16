@@ -1,7 +1,7 @@
-import express from 'express';
+import express, { type Router as RouterType } from 'express';
 import vodController from '../controllers/vod.controller.sqlite';
 
-const router = express.Router();
+const router: RouterType = express.Router();
 
 router.get('/content', vodController.getContentList.bind(vodController));
 router.get('/content/:contentId', vodController.getContentDetail.bind(vodController));

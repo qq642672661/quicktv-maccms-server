@@ -10,11 +10,11 @@
  * 6. 分类列表查询
  */
 
-import { Router } from "express";
+import { Router, type Router as RouterType } from "express";
 import liveController from "../controllers/live.controller";
 
 // 创建路由实例
-const router = Router();
+const router: RouterType = Router();
 
 // ==================== 公开API（无需认证） ====================
 

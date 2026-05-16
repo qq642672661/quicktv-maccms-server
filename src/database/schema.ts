@@ -8,7 +8,7 @@ if (!fs.existsSync(dbDir)) {
 }
 
 const dbPath = path.join(dbDir, 'quicktv.db');
-const db = new Database(dbPath);
+export const db: Database.Database = new Database(dbPath);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS tabs (

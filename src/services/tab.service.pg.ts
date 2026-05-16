@@ -31,21 +31,21 @@ export class TabService {
   static async getAllTabs(): Promise<Tab[]> {
     try {
       const cacheKey = `${CACHE_KEY_PREFIX}all`;
-      const cached = await redisCache.get(cacheKey);
-      
+      const cached = await redisCache.get<Tab[]>(cacheKey);
+
       if (cached) {
-        return JSON.parse(cached);
+        return cached;
       }
 
       const result = await database.query(`
-        SELECT * FROM tabs 
-        WHERE status = 1 
+        SELECT * FROM tabs
+        WHERE status = 1
         ORDER BY sort_order ASC, id ASC
       `);
-      
+
       const tabs = result.rows;
-      await redisCache.set(cacheKey, JSON.stringify(tabs), CACHE_TTL);
-      
+      await redisCache.set(cacheKey, tabs, CACHE_TTL);
+
       return tabs;
     } catch (error) {
       logger.error('获取Tab列表失败:', error);
@@ -56,22 +56,22 @@ export class TabService {
   static async getTabById(id: number): Promise<Tab | null> {
     try {
       const cacheKey = `${CACHE_KEY_PREFIX}${id}`;
-      const cached = await redisCache.get(cacheKey);
-      
+      const cached = await redisCache.get<Tab>(cacheKey);
+
       if (cached) {
-        return JSON.parse(cached);
+        return cached;
       }
 
       const result = await database.query(
         'SELECT * FROM tabs WHERE id = $1 AND status = 1',
         [id]
       );
-      
+
       const tab = result.rows[0] || null;
       if (tab) {
-        await redisCache.set(cacheKey, JSON.stringify(tab), CACHE_TTL);
+        await redisCache.set(cacheKey, tab, CACHE_TTL);
       }
-      
+
       return tab;
     } catch (error) {
       logger.error(`获取Tab失败 (id: ${id}):`, error);
@@ -82,22 +82,22 @@ export class TabService {
   static async getTabByMenuCode(menuCode: string): Promise<Tab | null> {
     try {
       const cacheKey = `${CACHE_KEY_PREFIX}code:${menuCode}`;
-      const cached = await redisCache.get(cacheKey);
-      
+      const cached = await redisCache.get<Tab>(cacheKey);
+
       if (cached) {
-        return JSON.parse(cached);
+        return cached;
       }
 
       const result = await database.query(
         'SELECT * FROM tabs WHERE menu_code = $1 AND status = 1',
         [menuCode]
       );
-      
+
       const tab = result.rows[0] || null;
       if (tab) {
-        await redisCache.set(cacheKey, JSON.stringify(tab), CACHE_TTL);
+        await redisCache.set(cacheKey, tab, CACHE_TTL);
       }
-      
+
       return tab;
     } catch (error) {
       logger.error(`获取Tab失败 (menuCode: ${menuCode}):`, error);
@@ -134,10 +134,10 @@ export class TabService {
         tab.sort_order || 0,
         tab.status || 1
       ]);
-      
+
       const id = result.rows[0].id;
       await this.clearCache();
-      
+
       logger.info(`Tab创建成功 (id: ${id})`);
       return id;
     } catch (error) {
@@ -168,13 +168,13 @@ export class TabService {
       const result = await database.query(`
         UPDATE tabs SET ${fields.join(', ')} WHERE id = $${paramIndex}
       `, values);
-      
+
       if (result.rowCount > 0) {
         await this.clearCache();
         logger.info(`Tab更新成功 (id: ${id})`);
         return true;
       }
-      
+
       return false;
     } catch (error) {
       logger.error(`更新Tab失败 (id: ${id}):`, error);
@@ -188,13 +188,13 @@ export class TabService {
         'UPDATE tabs SET status = 0 WHERE id = $1',
         [id]
       );
-      
+
       if (result.rowCount > 0) {
         await this.clearCache();
         logger.info(`Tab删除成功 (id: ${id})`);
         return true;
       }
-      
+
       return false;
     } catch (error) {
       logger.error(`删除Tab失败 (id: ${id}):`, error);
@@ -204,10 +204,7 @@ export class TabService {
 
   private static async clearCache(): Promise<void> {
     try {
-      const keys = await redisCache.keys(`${CACHE_KEY_PREFIX}*`);
-      if (keys.length > 0) {
-        await Promise.all(keys.map(key => redisCache.del(key)));
-      }
+      await redisCache.delPattern(`${CACHE_KEY_PREFIX}*`);
     } catch (error) {
       logger.error('清除Tab缓存失败:', error);
     }

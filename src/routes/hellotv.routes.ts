@@ -1,7 +1,7 @@
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import hellotvController from '../controllers/hellotv.controller';
 
-const router = Router();
+const router: RouterType = Router();
 
 router.get('/tabs', hellotvController.getTabList);
 router.get('/tabs/:tabId', hellotvController.getTabContent);

@@ -2,8 +2,8 @@ import db from './schema';
 import { TabService } from '../services/tab.service';
 import { SectionService } from '../services/section.service';
 import { MediaService } from '../services/media.service';
-import logger from '../utils/logger';
-import homeTab from '../../hellotv-mock-data/home_tab';
+import { default as logger } from '../utils/logger';
+import homeTabData from '../../hellotv-mock-data/home_tab';
 import homePage0 from '../../hellotv-mock-data/home_page0';
 
 export async function seedDatabase() {
@@ -17,7 +17,7 @@ export async function seedDatabase() {
     }
 
     logger.info('📦 从mock数据迁移Tab...');
-    homeTab.forEach((tab: any, index: number) => {
+    homeTabData.forEach((tab: any, index: number) => {
       TabService.createTab({
         menu_code: tab.menuCode || tab.id,
         menu_name: tab.menuName,

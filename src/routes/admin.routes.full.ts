@@ -1,15 +1,12 @@
-import { Router, Request, Response } from 'express';
+import { Router, type Router as RouterType, Request, Response } from 'express';
 import { Pool } from 'pg';
+import { v4 as uuidv4 } from 'uuid';
 
-const router = Router();
-
-interface AdminController {
-  pool: Pool;
-}
+const router: RouterType = Router();
 
 export function createAdminRoutes(pool: Pool): Router {
-  
-  router.get('/stats/dashboard', async (req: Request, res: Response) => {
+
+  router.get('/stats/dashboard', async (_req: Request, res: Response) => {
     try {
       const [
         videosCount,
@@ -23,8 +20,8 @@ export function createAdminRoutes(pool: Pool): Router {
         pool.query('SELECT COUNT(*) as count FROM categories'),
         pool.query('SELECT SUM(view_count) as total FROM videos'),
         pool.query(`
-          SELECT COUNT(*) as count 
-          FROM play_history 
+          SELECT COUNT(*) as count
+          FROM play_history
           WHERE created_at >= CURRENT_DATE
         `)
       ]);
@@ -87,10 +84,10 @@ export function createAdminRoutes(pool: Pool): Router {
       query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
       params.push(Number(limit), offset);
 
-      const countQuery = search 
+      const countQuery = search
         ? 'SELECT COUNT(*) FROM categories WHERE name ILIKE $1'
         : 'SELECT COUNT(*) FROM categories';
-      
+
       const [result, countResult] = await Promise.all([
         pool.query(query, params),
         pool.query(countQuery, search ? [`%${search}%`] : [])
@@ -148,7 +145,7 @@ export function createAdminRoutes(pool: Pool): Router {
       });
     } catch (error: any) {
       console.error('创建分类失败:', error);
-      
+
       if (error.code === '23505') {
         return res.status(400).json({
           code: 400,
@@ -172,7 +169,7 @@ export function createAdminRoutes(pool: Pool): Router {
       const { name, slug, description, parent_id, sort_order, is_active } = req.body;
 
       const result = await pool.query(
-        `UPDATE categories 
+        `UPDATE categories
          SET name = COALESCE($1, name),
              slug = COALESCE($2, slug),
              description = COALESCE($3, description),
@@ -258,10 +255,10 @@ export function createAdminRoutes(pool: Pool): Router {
 
   router.get('/videos', async (req: Request, res: Response) => {
     try {
-      const { 
-        page = 1, 
-        limit = 20, 
-        search = '', 
+      const {
+        page = 1,
+        limit = 20,
+        search = '',
         category_id = '',
         status = '',
         is_featured = '',
@@ -465,7 +462,7 @@ export function createAdminRoutes(pool: Pool): Router {
       values.push(id);
 
       const query = `
-        UPDATE videos 
+        UPDATE videos
         SET ${setClause.join(', ')}
         WHERE id = $${paramIndex}
         RETURNING *
@@ -596,10 +593,10 @@ export function createAdminRoutes(pool: Pool): Router {
 
   router.get('/live/channels', async (req: Request, res: Response) => {
     try {
-      const { 
-        page = 1, 
-        limit = 20, 
-        search = '', 
+      const {
+        page = 1,
+        limit = 20,
+        search = '',
         category = '',
         status = ''
       } = req.query;
@@ -704,7 +701,7 @@ export function createAdminRoutes(pool: Pool): Router {
         });
       }
 
-      const id = require('uuid').v4();
+      const id = uuidv4();
 
       const result = await pool.query(
         `INSERT INTO live_channels (
@@ -781,7 +778,7 @@ export function createAdminRoutes(pool: Pool): Router {
       values.push(id);
 
       const query = `
-        UPDATE live_channels 
+        UPDATE live_channels
         SET ${setClause.join(', ')}
         WHERE id = $${paramIndex}
         RETURNING *
@@ -847,7 +844,7 @@ export function createAdminRoutes(pool: Pool): Router {
     }
   });
 
-  router.post('/cache/clear', async (req: Request, res: Response) => {
+  router.post('/cache/clear', async (_req: Request, res: Response) => {
     try {
       res.json({
         code: 200,

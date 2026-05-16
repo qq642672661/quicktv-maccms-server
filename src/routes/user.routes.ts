@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import { userController } from '../controllers/user.controller';
 import { authMiddleware, requireRole } from '../middleware/auth';
 import { validate, validateQuery, validateParams } from '../middleware/validate';
@@ -11,7 +11,7 @@ import {
   userListQuerySchema,
 } from '../validators/user.validator';
 
-const router = Router();
+const router: RouterType = Router();
 
 router.post('/register', validate(registerSchema), userController.register);
 

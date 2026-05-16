@@ -1,7 +1,7 @@
-import express from 'express';
+import express, { type Router as RouterType } from 'express';
 import liveController from '../controllers/live.controller.sqlite';
 
-const router = express.Router();
+const router: RouterType = express.Router();
 
 router.get('/channels', liveController.getChannelList.bind(liveController));
 router.get('/channels/:channelId', liveController.getChannelDetail.bind(liveController));

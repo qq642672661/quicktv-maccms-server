@@ -78,6 +78,7 @@ services:
     volumes:
       - ./logs:/app/logs
       - ./uploads:/app/uploads
+      - ./data:/app/data
 
   # Nginx 反向代理（可选）
   nginx:

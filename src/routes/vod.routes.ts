@@ -1,7 +1,7 @@
-import { Router } from "express";
+import { Router, type Router as RouterType } from "express";
 import vodController from "../controllers/vod.controller";
 
-const router = Router();
+const router: RouterType = Router();
 
 router.get("/content", vodController.getContentList.bind(vodController));
 router.get("/content/:contentId", vodController.getContentDetail.bind(vodController));

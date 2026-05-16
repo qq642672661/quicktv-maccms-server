@@ -1,8 +1,8 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, type Router as RouterType } from 'express';
 import Database from 'better-sqlite3';
 import path from 'path';
 
-const router = Router();
+const router: RouterType = Router();
 
 function getDB(): Database.Database {
   const dbPath = path.join(process.cwd(), 'data', 'quicktv.db');

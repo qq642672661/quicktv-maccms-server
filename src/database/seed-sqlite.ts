@@ -1,5 +1,5 @@
 import { getSQLiteDB } from './sqlite';
-import { logger } from '../utils/logger';
+import logger from '../utils/logger';
 
 export async function seedTestData() {
   const db = await getSQLiteDB();

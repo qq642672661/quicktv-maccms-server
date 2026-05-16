@@ -10,7 +10,7 @@
  * 6. 视频互动（播放记录、点赞、评分）
  */
 
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import { videoController } from '../controllers/video.controller';
 import { authMiddleware, requireAdmin } from '../middleware/auth';
 import { validateBody, validateQuery } from '../middleware/validate';
@@ -23,7 +23,7 @@ import {
 } from '../validators/video.validator';
 
 // 创建路由实例
-const router = Router();
+const router: RouterType = Router();
 
 // ==================== 公开API（无需认证） ====================
 

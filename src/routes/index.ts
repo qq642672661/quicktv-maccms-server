@@ -1,11 +1,11 @@
-import express from 'express'
+import express, { type Router as RouterType } from 'express'
 import liveRoutes from './live.routes'
 import vodRoutes from './vod.routes'
 import userRoutes from './user.routes'
 import adminRoutes from './admin.routes.pg'
 import hellotvRoutes from './hellotv.routes'
 
-const router = express.Router()
+const router: RouterType = express.Router()
 
 router.get('/health', (_req, res) => {
   res.json({
