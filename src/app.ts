@@ -21,8 +21,10 @@ class App {
   private initializeMiddlewares(): void {
     this.app.use(helmet())
     this.app.use(cors({
-      origin: config.cors.origin,
-      credentials: true
+      origin: config.env === 'development' ? '*' : config.cors.origin,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization']
     }))
     this.app.use(compression())
     this.app.use(express.json({ limit: '10mb' }))

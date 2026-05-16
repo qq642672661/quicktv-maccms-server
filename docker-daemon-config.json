@@ -1,0 +1,19 @@
+{
+  "registry-mirrors": [
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://registry.docker-cn.com",
+    "https://hub-mirror.c.163.com"
+  ],
+  "ipv6": false,
+  "fixed-cidr-v6": "",
+  "experimental": false,
+  "features": {
+    "buildkit": true
+  },
+  "builder": {
+    "gc": {
+      "enabled": true,
+      "defaultKeepStorage": "20GB"
+    }
+  }
+}
