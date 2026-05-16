@@ -1,9 +1,10 @@
-import { Router } from 'express';
-import liveController from '../controllers/live.controller.sqlite';
-import vodController from '../controllers/vod.controller.sqlite';
+import express from 'express';
+import liveRoutes from './live.routes.sqlite';
+import vodRoutes from './vod.routes.sqlite';
 import hellotvRoutes from './hellotv.routes';
+import adminRoutes from './admin.routes';
 
-const router = Router();
+const router = express.Router();
 
 router.get('/health', (_req, res) => {
   res.json({
@@ -14,16 +15,9 @@ router.get('/health', (_req, res) => {
   });
 });
 
-router.use(hellotvRoutes);
-
-router.get('/live/channels', liveController.getChannelList.bind(liveController));
-router.get('/live/channels/:channelId', liveController.getChannelDetail.bind(liveController));
-router.post('/live/channels/:channelId/view', liveController.recordView.bind(liveController));
-router.get('/live/categories', liveController.getCategories.bind(liveController));
-
-router.get('/vod/content', vodController.getContentList.bind(vodController));
-router.get('/vod/content/:contentId', vodController.getContentDetail.bind(vodController));
-router.post('/vod/content/:contentId/view', vodController.recordView.bind(vodController));
-router.get('/vod/categories', vodController.getCategories.bind(vodController));
+router.use('/live', liveRoutes);
+router.use('/vod', vodRoutes);
+router.use('/v2/zero/arrange', hellotvRoutes);
+router.use('/admin', adminRoutes);
 
 export default router;
