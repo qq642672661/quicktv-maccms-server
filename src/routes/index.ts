@@ -3,6 +3,7 @@ import liveRoutes from './live.routes'
 import vodRoutes from './vod.routes'
 import userRoutes from './user.routes'
 import adminRoutes from './admin.routes.pg'
+import hellotvRoutes from './hellotv.routes'
 
 const router = express.Router()
 
@@ -21,5 +22,6 @@ router.use('/live', liveRoutes)
 router.use('/vod', vodRoutes)
 router.use('/users', userRoutes)
 router.use('/admin', adminRoutes)
+router.use('/hellotv', hellotvRoutes)
 
 export default router

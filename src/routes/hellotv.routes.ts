@@ -1,66 +1,23 @@
 import { Router } from 'express';
-import logger from '../utils/logger';
+import hellotvController from '../controllers/hellotv.controller';
 
 const router = Router();
 
-const menuHandler = async (_req: any, res: any) => {
-  logger.info('[HelloTV兼容] 获取菜单配置');
+router.get('/tabs', hellotvController.getTabList);
+router.get('/tabs/:tabId', hellotvController.getTabContent);
 
-  const menus = [
-    {
-      id: '0',
-      menuCode: '0',
-      menuName: '推荐',
-      menuType: '0',
-      imageWidth: 0,
-      imageHeight: 0,
-      image: '',
-      currentImage: '',
-      focusImage: '',
-      focusCornerImage: '',
-      cornerImage: '',
-      defaultHome: '1',
-      backgroundImage: ''
-    },
-    {
-      id: 'live',
-      menuCode: 'live',
-      menuName: '直播',
-      menuType: '0',
-      imageWidth: 0,
-      imageHeight: 0,
-      image: '',
-      currentImage: '',
-      focusImage: '',
-      focusCornerImage: '',
-      cornerImage: '',
-      defaultHome: '0',
-      backgroundImage: ''
-    }
-  ];
+router.get('/media/:mediaId', hellotvController.getMediaDetail);
+router.get('/media', hellotvController.getMediaList);
 
-  res.json(menus);
-};
+router.get('/search/center', hellotvController.getSearchCenter);
+router.get('/search', hellotvController.searchContent);
+router.post('/search/history', hellotvController.addSearchHistory);
 
-router.get('/v2/zero/arrange/menu/menuZero', menuHandler);
-router.post('/v2/zero/arrange/menu/menuZero', menuHandler);
+router.get('/short-videos', hellotvController.getShortVideoList);
 
-const layoutHandler = async (req: any, res: any) => {
-  const { menuCode } = req.query;
-  logger.info(`[HelloTV兼容] 获取布局配置: ${menuCode}`);
+router.get('/live/channels', hellotvController.getLiveChannels);
+router.get('/live/groups', hellotvController.getLiveChannelGroups);
 
-  const layoutConfig = {
-    code: 200,
-    message: 'success',
-    data: {
-      layouts: []
-    }
-  };
-
-  res.json(layoutConfig);
-};
-
-router.get('/v3/zero/arrange/layoutByMenuCode', layoutHandler);
-router.post('/v3/zero/arrange/layoutByMenuCode', layoutHandler);
+router.post('/view', hellotvController.recordView);
 
 export default router;
