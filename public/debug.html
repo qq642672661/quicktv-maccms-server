@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>调试工具</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+    #output { margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 4px; }
+    .error { color: red; }
+    .success { color: green; }
+  </style>
+</head>
+<body>
+  <h1>管理后台调试工具</h1>
+  <button onclick="testPage()">测试页面结构</button>
+  <button onclick="openAdmin()">打开管理后台</button>
+  <button onclick="clearOutput()">清除输出</button>
+  <div id="output"></div>
+
+  <script>
+    function log(msg, type = 'info') {
+      const output = document.getElementById('output');
+      const div = document.createElement('div');
+      div.className = type;
+      div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      output.appendChild(div);
+    }
+
+    function clearOutput() {
+      document.getElementById('output').innerHTML = '';
+    }
+
+    async function testPage() {
+      clearOutput();
+      log('开始测试...');
+      
+      try {
+        const response = await fetch('http://localhost:3000/admin-dashboard.html');
+        const html = await response.text();
+        
+        const pages = ['dashboard', 'categories', 'videos', 'live', 'sources', 'migration', 'settings'];
+        
+        log(`检查 ${pages.length} 个页面容器...`);
+        pages.forEach(page => {
+          const pageId = `id="${page}-page"`;
+          const dataPage = `data-page="${page}"`;
+          
+          if (html.includes(pageId) && html.includes(dataPage)) {
+            log(`✓ ${page}: 页面和菜单都存在`, 'success');
+          } else {
+            if (!html.includes(pageId)) log(`✗ ${page}: 缺少页面容器`, 'error');
+            if (!html.includes(dataPage)) log(`✗ ${page}: 缺少菜单项`, 'error');
+          }
+        });
+        
+        if (html.includes('DOMContentLoaded')) {
+          log('✓ 找到 DOMContentLoaded 事件监听器', 'success');
+        } else {
+          log('✗ 缺少 DOMContentLoaded 事件监听器', 'error');
+        }
+        
+        if (html.includes('function showPage')) {
+          log('✓ 找到 showPage 函数', 'success');
+        } else {
+          log('✗ 缺少 showPage 函数', 'error');
+        }
+        
+        log('测试完成！', 'success');
+        
+      } catch (error) {
+        log(`测试失败: ${error.message}`, 'error');
+      }
+    }
+
+    function openAdmin() {
+      log('打开管理后台...');
+      const win = window.open('http://localhost:3000/admin-dashboard.html', '_blank');
+      if (win) {
+        log('管理后台已在新标签页打开', 'success');
+        log('请按 F12 打开开发者工具，查看 Console 标签的日志');
+      } else {
+        log('无法打开新标签页，请检查浏览器设置', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

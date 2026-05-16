@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickTV 后台管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+        }
+
+        .close {
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge-warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .pagination button:hover {
+            background: #f7fafc;
+        }
+
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 QuickTV 后台管理系统</h1>
+            <p>企业级内容管理平台 - 轻松管理您的点播和直播内容</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Tab菜单</h3>
+                <div class="number" id="tabCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>媒体内容</h3>
+                <div class="number" id="mediaCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>直播频道</h3>
+                <div class="number" id="channelCount">25</div>
+            </div>
+            <div class="stat-card">
+                <h3>系统状态</h3>
+                <div class="number" style="color: #48bb78;">✓ 运行中</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('tabs')">Tab管理</div>
+            <div class="tab" onclick="switchTab('media')">媒体管理</div>
+            <div class="tab" onclick="switchTab('channels')">直播频道</div>
+        </div>
+
+        <div class="content">
+            <div id="tabsContent" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Tab菜单管理</h2>
+                    <button class="btn btn-primary" onclick="showAddTabModal()">+ 添加Tab</button>
+                </div>
+                <div class="table-container">
+                    <div id="tabsTable" class="loading">加载中...</div>
+                </div>
+            </div>
+
+            <div id="mediaContent" class="tab-content" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>媒体内容管理</h2>
+                    <button class="btn btn-primary" onclick="showAddMediaModal()">+ 添加媒体</button>
+                </div>
+                <div class="table-container">
+                    <div id="mediaTable" class="loading">加载中...</div>
+                </div>
+            </div>
+
+            <div id="channelsContent" class="tab-content" style="display: none;">
+                <h2>直播频道列表</h2>
+                <div class="table-container">
+                    <div id="channelsTable" class="loading">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Modal -->
+    <div id="tabModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="tabModalTitle">添加Tab</h2>
+                <span class="close" onclick="closeModal('tabModal')">&times;</span>
+            </div>
+            <form id="tabForm" onsubmit="saveTab(event)">
+                <div class="form-group">
+                    <label>菜单代码 *</label>
+                    <input type="text" name="menu_code" required placeholder="例如: movie">
+                </div>
+                <div class="form-group">
+                    <label>菜单名称 *</label>
+                    <input type="text" name="menu_name" required placeholder="例如: 电影">
+                </div>
+                <div class="form-group">
+                    <label>菜单类型</label>
+                    <select name="menu_type">
+                        <option value="0">文字</option>
+                        <option value="1">图片</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>默认首页</label>
+                    <select name="default_home">
+                        <option value="0">否</option>
+                        <option value="1">是</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>排序</label>
+                    <input type="number" name="sort_order" value="0">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('tabModal')">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Media Modal -->
+    <div id="mediaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="mediaModalTitle">添加媒体</h2>
+                <span class="close" onclick="closeModal('mediaModal')">&times;</span>
+            </div>
+            <form id="mediaForm" onsubmit="saveMedia(event)">
+                <div class="form-group">
+                    <label>媒体ID *</label>
+                    <input type="text" name="media_id" required placeholder="例如: movie_001">
+                </div>
+                <div class="form-group">
+                    <label>标题 *</label>
+                    <input type="text" name="title" required placeholder="例如: 示例电影">
+                </div>
+                <div class="form-group">
+                    <label>副标题</label>
+                    <input type="text" name="subtitle" placeholder="例如: 精彩动作片">
+                </div>
+                <div class="form-group">
+                    <label>封面图URL</label>
+                    <input type="url" name="cover" placeholder="https://picsum.photos/640/360">
+                </div>
+                <div class="form-group">
+                    <label>视频URL</label>
+                    <input type="url" name="video_url" placeholder="https://example.com/video.mp4">
+                </div>
+                <div class="form-group">
+                    <label>分类</label>
+                    <input type="text" name="category" placeholder="例如: 电影">
+                </div>
+                <div class="form-group">
+                    <label>描述</label>
+                    <textarea name="description" rows="3" placeholder="媒体描述..."></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">保存</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('mediaModal')">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let currentTab = 'tabs';
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadTabs();
+        });
+
+        // 切换Tab
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.getElementById(tab + 'Content').style.display = 'block';
+            
+            if (tab === 'tabs') loadTabs();
+            else if (tab === 'media') loadMedia();
+            else if (tab === 'channels') loadChannels();
+        }
+
+        // 加载统计
+        async function loadStats() {
+            try {
+                const [tabs, media] = await Promise.all([
+                    fetch(`${API_BASE}/admin/tabs`).then(r => r.json()),
+                    fetch(`${API_BASE}/admin/media`).then(r => r.json())
+                ]);
+                
+                document.getElementById('tabCount').textContent = tabs.data?.length || 0;
+                document.getElementById('mediaCount').textContent = media.total || 0;
+            } catch (error) {
+                console.error('加载统计失败:', error);
+            }
+        }
+
+        // 加载Tabs
+        async function loadTabs() {
+            const container = document.getElementById('tabsTable');
+            container.innerHTML = '<div class="loading">加载中...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/tabs`);
+                const result = await response.json();
+                
+                if (result.data && result.data.length > 0) {
+                    container.innerHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>菜单代码</th>
+                                    <th>菜单名称</th>
+                                    <th>类型</th>
+                                    <th>默认首页</th>
+                                    <th>排序</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${result.data.map(tab => `
+                                    <tr>
+                                        <td>${tab.id}</td>
+                                        <td><code>${tab.menu_code}</code></td>
+                                        <td>${tab.menu_name}</td>
+                                        <td>${tab.menu_type === 0 ? '文字' : '图片'}</td>
+                                        <td>${tab.default_home === 1 ? '<span class="badge badge-success">是</span>' : '否'}</td>
+                                        <td>${tab.sort_order}</td>
+                                        <td>
+                                            <button class="btn btn-danger" onclick="deleteTab(${tab.id})">删除</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="empty">
+                            <div class="empty-icon">📋</div>
+                            <p>暂无Tab数据，点击上方按钮添加</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="empty">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // 加载Media
+        async function loadMedia() {
+            const container = document.getElementById('mediaTable');
+            container.innerHTML = '<div class="loading">加载中...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/media?page=1&limit=20`);
+                const result = await response.json();
+                
+                if (result.data && result.data.length > 0) {
+                    container.innerHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>媒体ID</th>
+                                    <th>标题</th>
+                                    <th>分类</th>
+                                    <th>观看次数</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${result.data.map(media => `
+                                    <tr>
+                                        <td>${media.id}</td>
+                                        <td><code>${media.media_id}</code></td>
+                                        <td>${media.title}</td>
+                                        <td>${media.category || '-'}</td>
+                                        <td>${media.view_count || 0}</td>
+                                        <td>
+                                            <button class="btn btn-danger" onclick="deleteMedia(${media.id})">删除</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="empty">
+                            <div class="empty-icon">🎬</div>
+                            <p>暂无媒体数据，点击上方按钮添加</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="empty">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // 加载Channels
+        async function loadChannels() {
+            const container = document.getElementById('channelsTable');
+            container.innerHTML = '<div class="loading">加载中...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/live/channels?page=1&limit=25`);
+                const result = await response.json();
+                
+                if (result.data && result.data.channels && result.data.channels.length > 0) {
+                    container.innerHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>频道名称</th>
+                                    <th>分类</th>
+                                    <th>状态</th>
+                                    <th>Logo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${result.data.channels.map(channel => `
+                                    <tr>
+                                        <td>${channel.id}</td>
+                                        <td>${channel.name}</td>
+                                        <td>${channel.category}</td>
+                                        <td><span class="badge badge-success">${channel.status}</span></td>
+                                        <td><img src="${channel.logo}" alt="${channel.name}" style="height: 30px;"></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    container.innerHTML = `<div class="empty">暂无频道数据</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="empty">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // Modal操作
+        function showAddTabModal() {
+            document.getElementById('tabModalTitle').textContent = '添加Tab';
+            document.getElementById('tabForm').reset();
+            document.getElementById('tabModal').classList.add('active');
+        }
+
+        function showAddMediaModal() {
+            document.getElementById('mediaModalTitle').textContent = '添加媒体';
+            document.getElementById('mediaForm').reset();
+            document.getElementById('mediaModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // 保存Tab
+        async function saveTab(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/tabs`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    alert('保存成功！');
+                    closeModal('tabModal');
+                    loadTabs();
+                    loadStats();
+                } else {
+                    alert('保存失败！');
+                }
+            } catch (error) {
+                alert('保存失败: ' + error.message);
+            }
+        }
+
+        // 保存Media
+        async function saveMedia(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/media`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    alert('保存成功！');
+                    closeModal('mediaModal');
+                    loadMedia();
+                    loadStats();
+                } else {
+                    alert('保存失败！');
+                }
+            } catch (error) {
+                alert('保存失败: ' + error.message);
+            }
+        }
+
+        // 删除Tab
+        async function deleteTab(id) {
+            if (!confirm('确定要删除这个Tab吗？')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/tabs/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    alert('删除成功！');
+                    loadTabs();
+                    loadStats();
+                } else {
+                    alert('删除失败！');
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+
+        // 删除Media
+        async function deleteMedia(id) {
+            if (!confirm('确定要删除这个媒体吗？')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/media/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    alert('删除成功！');
+                    loadMedia();
+                    loadStats();
+                } else {
+                    alert('删除失败！');
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

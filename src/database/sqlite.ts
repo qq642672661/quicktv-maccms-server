@@ -112,6 +112,13 @@ export async function getSQLiteDB(): Promise<Database> {
   return db;
 }
 
+export function getDB(): Database {
+  if (!db) {
+    throw new Error('Database not initialized. Call initSQLiteDB() first.');
+  }
+  return db;
+}
+
 export async function closeSQLite(): Promise<void> {
   if (db) {
     await db.close();

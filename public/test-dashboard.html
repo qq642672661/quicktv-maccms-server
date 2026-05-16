@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台测试页面</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-result {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #007bff;
+      color: white;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    pre {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 HelloTV 管理后台自动化测试</h1>
+  
+  <div class="test-section">
+    <h2>测试控制</h2>
+    <button onclick="runAllTests()">运行所有测试</button>
+    <button onclick="openAdminPage()">打开管理后台</button>
+    <button onclick="clearResults()">清除结果</button>
+  </div>
+
+  <div class="test-section">
+    <h2>测试结果</h2>
+    <div id="test-results"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000/api/admin';
+    let testWindow = null;
+
+    function addResult(message, type = 'info') {
+      const resultsDiv = document.getElementById('test-results');
+      const resultDiv = document.createElement('div');
+      resultDiv.className = `test-result ${type}`;
+      resultDiv.textContent = message;
+      resultsDiv.appendChild(resultDiv);
+    }
+
+    function clearResults() {
+      document.getElementById('test-results').innerHTML = '';
+    }
+
+    function openAdminPage() {
+      addResult('正在打开管理后台页面...', 'info');
+      testWindow = window.open('http://localhost:3000/admin-dashboard.html', 'admin-test', 'width=1200,height=800');
+      
+      if (testWindow) {
+        addResult('✅ 管理后台页面已在新窗口打开', 'success');
+        
+        setTimeout(() => {
+          if (testWindow && !testWindow.closed) {
+            addResult('提示: 请在新窗口中手动测试选项卡切换功能', 'info');
+          }
+        }, 2000);
+      } else {
+        addResult('❌ 无法打开新窗口，请检查浏览器弹窗设置', 'error');
+      }
+    }
+
+    async function testAPI(endpoint, name) {
+      try {
+        addResult(`测试 ${name}...`, 'info');
+        const response = await fetch(`${API_BASE}${endpoint}`);
+        const data = await response.json();
+        
+        if (data.code === 200) {
+          addResult(`✅ ${name} - 成功`, 'success');
+          return true;
+        } else {
+          addResult(`❌ ${name} - 失败: ${data.message}`, 'error');
+          return false;
+        }
+      } catch (error) {
+        addResult(`❌ ${name} - 错误: ${error.message}`, 'error');
+        return false;
+      }
+    }
+
+    async function testHTMLStructure() {
+      addResult('检查HTML结构...', 'info');
+      
+      try {
+        const response = await fetch('http://localhost:3000/admin-dashboard.html');
+        const html = await response.text();
+        
+        const menuItems = [
+          'data-page="dashboard"',
+          'data-page="categories"',
+          'data-page="videos"',
+          'data-page="live"',
+          'data-page="sources"',
+          'data-page="migration"',
+          'data-page="settings"'
+        ];
+        
+        const pageIds = [
+          'id="dashboard-page"',
+          'id="categories-page"',
+          'id="videos-page"',
+          'id="live-page"',
+          'id="sources-page"',
+          'id="migration-page"',
+          'id="settings-page"'
+        ];
+        
+        let allMenuItemsFound = true;
+        let allPagesFound = true;
+        
+        menuItems.forEach(item => {
+          if (!html.includes(item)) {
+            addResult(`❌ 缺少菜单项: ${item}`, 'error');
+            allMenuItemsFound = false;
+          }
+        });
+        
+        pageIds.forEach(id => {
+          if (!html.includes(id)) {
+            addResult(`❌ 缺少页面容器: ${id}`, 'error');
+            allPagesFound = false;
+          }
+        });
+        
+        if (allMenuItemsFound && allPagesFound) {
+          addResult(`✅ HTML结构完整: ${menuItems.length}个菜单项, ${pageIds.length}个页面`, 'success');
+          return true;
+        } else {
+          addResult('❌ HTML结构不完整', 'error');
+          return false;
+        }
+        
+      } catch (error) {
+        addResult(`❌ 无法检查HTML结构: ${error.message}`, 'error');
+        return false;
+      }
+    }
+
+    async function testJavaScript() {
+      addResult('检查JavaScript代码...', 'info');
+      
+      try {
+        const response = await fetch('http://localhost:3000/admin-dashboard.html');
+        const html = await response.text();
+        
+        const requiredFunctions = [
+          'DOMContentLoaded',
+          'showPage',
+          'loadDashboard',
+          'loadCategories',
+          'loadVideos',
+          'loadChannels'
+        ];
+        
+        let allFunctionsFound = true;
+        
+        requiredFunctions.forEach(func => {
+          if (!html.includes(func)) {
+            addResult(`❌ 缺少函数: ${func}`, 'error');
+            allFunctionsFound = false;
+          }
+        });
+        
+        if (allFunctionsFound) {
+          addResult('✅ JavaScript代码完整', 'success');
+          return true;
+        } else {
+          addResult('❌ JavaScript代码不完整', 'error');
+          return false;
+        }
+        
+      } catch (error) {
+        addResult(`❌ 无法检查JavaScript: ${error.message}`, 'error');
+        return false;
+      }
+    }
+
+    async function runAllTests() {
+      clearResults();
+      addResult('🚀 开始自动化测试...', 'info');
+      addResult('', 'info');
+      
+      addResult('=== 第1步: 测试后端API ===', 'info');
+      await testAPI('/stats/dashboard', '仪表盘API');
+      await testAPI('/categories', '分类API');
+      await testAPI('/videos', '视频API');
+      await testAPI('/live/channels', '直播频道API');
+      
+      addResult('', 'info');
+      addResult('=== 第2步: 检查HTML结构 ===', 'info');
+      await testHTMLStructure();
+      
+      addResult('', 'info');
+      addResult('=== 第3步: 检查JavaScript代码 ===', 'info');
+      await testJavaScript();
+      
+      addResult('', 'info');
+      addResult('=== 第4步: 打开管理后台进行手动测试 ===', 'info');
+      openAdminPage();
+      
+      addResult('', 'info');
+      addResult('✅ 自动化测试完成！', 'success');
+      addResult('请在新打开的窗口中手动测试选项卡切换功能', 'info');
+    }
+
+    window.onload = function() {
+      addResult('测试页面已加载，点击"运行所有测试"开始测试', 'info');
+    };
+  </script>
+</body>
+</html>

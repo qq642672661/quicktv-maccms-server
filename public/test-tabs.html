@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>选项卡测试</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      background: #ddd;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .tab.active {
+      background: #3498db;
+      color: white;
+    }
+    .page {
+      padding: 20px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      display: none;
+    }
+    .page.active {
+      display: block;
+    }
+    .log {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .log-entry {
+      padding: 5px;
+      border-bottom: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>选项卡切换测试</h1>
+  
+  <div class="tabs">
+    <div class="tab active" data-page="dashboard">📊 仪表盘</div>
+    <div class="tab" data-page="categories">📂 分类管理</div>
+    <div class="tab" data-page="videos">🎬 视频管理</div>
+    <div class="tab" data-page="live">📺 直播管理</div>
+    <div class="tab" data-page="sources">🔗 数据源管理</div>
+    <div class="tab" data-page="migration">🔄 数据迁移</div>
+    <div class="tab" data-page="settings">⚙️ 系统设置</div>
+  </div>
+
+  <div id="dashboard-page" class="page active">
+    <h2>仪表盘页面</h2>
+    <p>这是仪表盘的内容</p>
+  </div>
+
+  <div id="categories-page" class="page">
+    <h2>分类管理页面</h2>
+    <p>这是分类管理的内容</p>
+  </div>
+
+  <div id="videos-page" class="page">
+    <h2>视频管理页面</h2>
+    <p>这是视频管理的内容</p>
+  </div>
+
+  <div id="live-page" class="page">
+    <h2>直播管理页面</h2>
+    <p>这是直播管理的内容</p>
+  </div>
+
+  <div id="sources-page" class="page">
+    <h2>数据源管理页面</h2>
+    <p>这是数据源管理的内容</p>
+  </div>
+
+  <div id="migration-page" class="page">
+    <h2>数据迁移页面</h2>
+    <p>这是数据迁移的内容</p>
+  </div>
+
+  <div id="settings-page" class="page">
+    <h2>系统设置页面</h2>
+    <p>这是系统设置的内容</p>
+  </div>
+
+  <div class="log">
+    <h3>事件日志</h3>
+    <div id="log-container"></div>
+  </div>
+
+  <script>
+    function log(message) {
+      const logContainer = document.getElementById('log-container');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logContainer.appendChild(entry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      log('页面加载完成');
+      
+      const tabs = document.querySelectorAll('.tab');
+      log(`找到 ${tabs.length} 个选项卡`);
+      
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', function() {
+          const page = this.dataset.page;
+          log(`点击选项卡 #${index + 1}: ${page}`);
+          
+          tabs.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          log(`激活选项卡: ${page}`);
+          
+          document.querySelectorAll('.page').forEach(p => {
+            p.classList.remove('active');
+          });
+          
+          const targetPage = document.getElementById(`${page}-page`);
+          if (targetPage) {
+            targetPage.classList.add('active');
+            log(`显示页面: ${page}-page`);
+          } else {
+            log(`错误: 找不到页面 ${page}-page`);
+          }
+        });
+      });
+      
+      log('事件监听器设置完成');
+    });
+  </script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
+import path from 'path';
 import routes from './routes/index.sqlite';
 import logger from './utils/logger';
 import { initSQLiteDB, seedSQLiteData } from './database/sqlite';
@@ -20,7 +21,21 @@ class Server {
   }
 
   private initializeMiddlewares(): void {
-    this.app.use(helmet());
+    this.app.use(helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", "data:", "https:"],
+          connectSrc: ["'self'"],
+          fontSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          mediaSrc: ["'self'"],
+          frameSrc: ["'none'"],
+        },
+      },
+    }));
     this.app.use(cors({
       origin: '*',
       credentials: true,
@@ -30,6 +45,7 @@ class Server {
     this.app.use(compression());
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+    this.app.use(express.static(path.join(__dirname, '../public')));
     this.app.use(morgan('dev'));
   }
 

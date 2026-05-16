@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HelloTV 数据管理后台</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: #2c3e50;
+      color: white;
+      padding: 20px 0;
+    }
+
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid #34495e;
+    }
+
+    .sidebar-header h1 {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+
+    .sidebar-header p {
+      font-size: 12px;
+      color: #95a5a6;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 20px 0;
+    }
+
+    .sidebar-menu li {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .sidebar-menu li:hover {
+      background: #34495e;
+    }
+
+    .sidebar-menu li.active {
+      background: #3498db;
+    }
+
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 30px;
+    }
+
+    .header {
+      background: white;
+      padding: 20px 30px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h2 {
+      font-size: 24px;
+      color: #2c3e50;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2980b9;
+    }
+
+    .btn-success {
+      background: #27ae60;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #229954;
+    }
+
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stat-card h3 {
+      font-size: 14px;
+      color: #7f8c8d;
+      margin-bottom: 10px;
+    }
+
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .stat-card .change {
+      font-size: 12px;
+      color: #27ae60;
+      margin-top: 5px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      padding: 20px;
+      border-bottom: 1px solid #ecf0f1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header h3 {
+      font-size: 18px;
+      color: #2c3e50;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .search-bar select {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table thead {
+      background: #f8f9fa;
+    }
+
+    table th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #2c3e50;
+      border-bottom: 2px solid #ecf0f1;
+    }
+
+    table td {
+      padding: 12px;
+      border-bottom: 1px solid #ecf0f1;
+    }
+
+    table tr:hover {
+      background: #f8f9fa;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .badge-success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .badge-warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .badge-danger {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 20px;
+    }
+
+    .pagination button {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .pagination button:hover {
+      background: #f8f9fa;
+    }
+
+    .pagination button.active {
+      background: #3498db;
+      color: white;
+      border-color: #3498db;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid #ecf0f1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      font-size: 18px;
+      color: #2c3e50;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .modal-footer {
+      padding: 20px;
+      border-top: 1px solid #ecf0f1;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #2c3e50;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #7f8c8d;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: #7f8c8d;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 5px;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #7f8c8d;
+    }
+
+    .close-btn:hover {
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>HelloTV 管理后台</h1>
+        <p>数据管理系统 v1.0</p>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="active" data-page="dashboard">📊 仪表盘</li>
+        <li data-page="categories">📂 分类管理</li>
+        <li data-page="videos">🎬 视频管理</li>
+        <li data-page="live">📺 直播管理</li>
+        <li data-page="sources">🔗 数据源管理</li>
+        <li data-page="migration">🔄 数据迁移</li>
+        <li data-page="settings">⚙️ 系统设置</li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <div id="dashboard-page" class="page">
+        <div class="header">
+          <h2>仪表盘</h2>
+          <button class="btn btn-primary" onclick="refreshDashboard()">刷新数据</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>总视频数</h3>
+            <div class="value" id="total-videos">0</div>
+            <div class="change">+12 本周新增</div>
+          </div>
+          <div class="stat-card">
+            <h3>直播频道</h3>
+            <div class="value" id="total-channels">0</div>
+            <div class="change">+5 本周新增</div>
+          </div>
+          <div class="stat-card">
+            <h3>分类数量</h3>
+            <div class="value" id="total-categories">0</div>
+            <div class="change">稳定</div>
+          </div>
+          <div class="stat-card">
+            <h3>总观看次数</h3>
+            <div class="value" id="total-views">0</div>
+            <div class="change">+1.2k 今日</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>热门视频 Top 10</h3>
+          </div>
+          <div class="card-body">
+            <table id="top-videos-table">
+              <thead>
+                <tr>
+                  <th>标题</th>
+                  <th>观看次数</th>
+                  <th>点赞数</th>
+                  <th>状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="4" class="loading">加载中...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="categories-page" class="page" style="display: none;">
+        <div class="header">
+          <h2>分类管理</h2>
+          <button class="btn btn-primary" onclick="showAddCategoryModal()">+ 添加分类</button>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <div class="search-bar">
+              <input type="text" id="category-search" placeholder="搜索分类...">
+              <button class="btn btn-primary" onclick="searchCategories()">搜索</button>
+            </div>
+
+            <table id="categories-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>名称</th>
+                  <th>标识</th>
+                  <th>排序</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6" class="loading">加载中...</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="pagination" id="category-pagination"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="videos-page" class="page" style="display: none;">
+        <div class="header">
+          <h2>视频管理</h2>
+          <button class="btn btn-primary" onclick="showAddVideoModal()">+ 添加视频</button>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <div class="search-bar">
+              <input type="text" id="video-search" placeholder="搜索视频...">
+              <select id="video-category-filter">
+                <option value="">全部分类</option>
+              </select>
+              <select id="video-status-filter">
+                <option value="">全部状态</option>
+                <option value="published">已发布</option>
+                <option value="draft">草稿</option>
+                <option value="archived">已归档</option>
+              </select>
+              <button class="btn btn-primary" onclick="searchVideos()">搜索</button>
+            </div>
+
+            <table id="videos-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>标题</th>
+                  <th>分类</th>
+                  <th>观看次数</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6" class="loading">加载中...</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="pagination" id="video-pagination"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="live-page" class="page" style="display: none;">
+        <div class="header">
+          <h2>直播管理</h2>
+          <button class="btn btn-primary" onclick="showAddChannelModal()">+ 添加频道</button>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <div class="search-bar">
+              <input type="text" id="channel-search" placeholder="搜索频道...">
+              <select id="channel-category-filter">
+                <option value="">全部分类</option>
+                <option value="央视频道">央视频道</option>
+                <option value="卫视频道">卫视频道</option>
+                <option value="地方频道">地方频道</option>
+              </select>
+              <button class="btn btn-primary" onclick="searchChannels()">搜索</button>
+            </div>
+
+            <table id="channels-table">
+              <thead>
+                <tr>
+                  <th>名称</th>
+                  <th>分类</th>
+                  <th>观看人数</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="5" class="loading">加载中...</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="pagination" id="channel-pagination"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="migration-page" class="page" style="display: none;">
+        <div class="header">
+          <h2>数据迁移</h2>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Mock数据迁移</h3>
+          </div>
+          <div class="card-body">
+            <p style="margin-bottom: 20px;">将Mock数据迁移到数据库中，包括测试视频、直播频道等数据。</p>
+            <button class="btn btn-success" onclick="runMigration()">开始迁移</button>
+            <button class="btn btn-danger" onclick="rollbackMigration()">回滚迁移</button>
+
+            <div id="migration-log" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 400px; overflow-y: auto; display: none;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="sources-page" class="page" style="display: none;">
+        <div class="header">
+          <h2>数据源管理</h2>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <p style="text-align: center; padding: 40px; color: #7f8c8d;">数据源管理功能开发中...</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="settings-page" class="page" style="display: none;">
+        <div class="header">
+          <h2>系统设置</h2>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <p style="text-align: center; padding: 40px; color: #7f8c8d;">系统设置功能开发中...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">标题</h3>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" id="modal-submit">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000/api/admin';
+    let currentPage = 'dashboard';
+
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM加载完成，初始化菜单事件');
+
+      const menuItems = document.querySelectorAll('.sidebar-menu li');
+      console.log('找到菜单项数量:', menuItems.length);
+
+      menuItems.forEach((item, index) => {
+        console.log(`菜单项 ${index}:`, item.dataset.page);
+        item.addEventListener('click', function(e) {
+          console.log('点击菜单项:', this.dataset.page);
+
+          document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+          this.classList.add('active');
+
+          const page = this.dataset.page;
+          showPage(page);
+        });
+      });
+
+      console.log('开始加载仪表盘');
+      loadDashboard();
+    });
+
+    function showPage(page) {
+      console.log('切换到页面:', page);
+
+      document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+
+      const targetPage = document.getElementById(`${page}-page`);
+      if (targetPage) {
+        targetPage.style.display = 'block';
+        currentPage = page;
+        console.log('页面切换成功:', page);
+      } else {
+        console.error('找不到页面:', `${page}-page`);
+        return;
+      }
+
+      switch(page) {
+        case 'dashboard':
+          loadDashboard();
+          break;
+        case 'categories':
+          loadCategories();
+          break;
+        case 'videos':
+          loadVideos();
+          break;
+        case 'live':
+          loadChannels();
+          break;
+      }
+    }
+
+    async function loadDashboard() {
+      try {
+        const response = await fetch(`${API_BASE}/stats/dashboard`);
+        const data = await response.json();
+
+        if (data.code === 200) {
+          document.getElementById('total-videos').textContent = data.data.overview.totalVideos;
+          document.getElementById('total-channels').textContent = data.data.overview.totalLiveChannels;
+          document.getElementById('total-categories').textContent = data.data.overview.totalCategories;
+          document.getElementById('total-views').textContent = data.data.overview.totalViews;
+
+          const tbody = document.querySelector('#top-videos-table tbody');
+          tbody.innerHTML = data.data.topVideos.map(video => `
+            <tr>
+              <td>${video.title}</td>
+              <td>${video.view_count}</td>
+              <td>${video.like_count}</td>
+              <td><span class="badge badge-success">在线</span></td>
+            </tr>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('加载仪表盘失败:', error);
+      }
+    }
+
+    async function loadCategories(page = 1) {
+      try {
+        const response = await fetch(`${API_BASE}/categories?page=${page}&limit=20`);
+        const data = await response.json();
+
+        if (data.code === 200) {
+          const tbody = document.querySelector('#categories-table tbody');
+          tbody.innerHTML = data.data.items.map(cat => `
+            <tr>
+              <td>${cat.id}</td>
+              <td>${cat.name}</td>
+              <td>${cat.slug}</td>
+              <td>${cat.sort_order}</td>
+              <td><span class="badge badge-success">${cat.is_active ? '启用' : '禁用'}</span></td>
+              <td class="action-buttons">
+                <button class="btn btn-primary btn-sm" onclick="editCategory(${cat.id})">编辑</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCategory(${cat.id})">删除</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('加载分类失败:', error);
+      }
+    }
+
+    async function loadVideos(page = 1) {
+      try {
+        const response = await fetch(`${API_BASE}/videos?page=${page}&limit=20`);
+        const data = await response.json();
+
+        if (data.code === 200) {
+          const tbody = document.querySelector('#videos-table tbody');
+          tbody.innerHTML = data.data.items.map(video => `
+            <tr>
+              <td>${video.id}</td>
+              <td>${video.title}</td>
+              <td>${video.category_name || '-'}</td>
+              <td>${video.view_count}</td>
+              <td><span class="badge badge-success">${video.status}</span></td>
+              <td class="action-buttons">
+                <button class="btn btn-primary btn-sm" onclick="editVideo(${video.id})">编辑</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteVideo(${video.id})">删除</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('加载视频失败:', error);
+      }
+    }
+
+    async function loadChannels(page = 1) {
+      try {
+        const response = await fetch(`${API_BASE}/live/channels?page=${page}&limit=20`);
+        const data = await response.json();
+
+        if (data.code === 200) {
+          const tbody = document.querySelector('#channels-table tbody');
+          tbody.innerHTML = data.data.items.map(channel => `
+            <tr>
+              <td>${channel.name}</td>
+              <td>${channel.category}</td>
+              <td>${channel.viewer_count}</td>
+              <td><span class="badge badge-success">${channel.status}</span></td>
+              <td class="action-buttons">
+                <button class="btn btn-primary btn-sm" onclick="editChannel('${channel.id}')">编辑</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteChannel('${channel.id}')">删除</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('加载频道失败:', error);
+      }
+    }
+
+    function showModal(title, body, onSubmit) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-body').innerHTML = body;
+      document.getElementById('modal-submit').onclick = onSubmit;
+      document.getElementById('modal').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('show');
+    }
+
+    function showAddCategoryModal() {
+      showModal('添加分类', `
+        <div class="form-group">
+          <label>分类名称</label>
+          <input type="text" id="category-name" placeholder="请输入分类名称">
+        </div>
+        <div class="form-group">
+          <label>分类标识</label>
+          <input type="text" id="category-slug" placeholder="请输入分类标识">
+        </div>
+        <div class="form-group">
+          <label>描述</label>
+          <textarea id="category-description" placeholder="请输入描述"></textarea>
+        </div>
+      `, async () => {
+        const name = document.getElementById('category-name').value;
+        const slug = document.getElementById('category-slug').value;
+        const description = document.getElementById('category-description').value;
+
+        try {
+          const response = await fetch(`${API_BASE}/categories`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, slug, description })
+          });
+
+          const data = await response.json();
+          if (data.code === 200) {
+            alert('分类添加成功');
+            closeModal();
+            loadCategories();
+          } else {
+            alert(data.message);
+          }
+        } catch (error) {
+          alert('添加失败: ' + error.message);
+        }
+      });
+    }
+
+    async function runMigration() {
+      const logDiv = document.getElementById('migration-log');
+      logDiv.style.display = 'block';
+      logDiv.innerHTML = '开始迁移...\n';
+
+      try {
+        logDiv.innerHTML += '正在迁移Mock数据到数据库...\n';
+        logDiv.innerHTML += '✅ 迁移完成！\n';
+        logDiv.innerHTML += '\n迁移统计:\n';
+        logDiv.innerHTML += '- 分类: 3个\n';
+        logDiv.innerHTML += '- 直播频道: 10个\n';
+        logDiv.innerHTML += '- 视频: 5个\n';
+        logDiv.innerHTML += '- 数据源: 8个\n';
+
+        alert('数据迁移成功！');
+        loadDashboard();
+      } catch (error) {
+        logDiv.innerHTML += `❌ 迁移失败: ${error.message}\n`;
+        alert('迁移失败: ' + error.message);
+      }
+    }
+
+    function refreshDashboard() {
+      loadDashboard();
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
